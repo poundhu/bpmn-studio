@@ -30,6 +30,7 @@ import {SaveDiagramService} from '../../../services/save-diagram-service/save-di
 import {exposeFunctionForTesting} from '../../../services/expose-functionality-module/expose-functionality.module';
 import {DiagramDetailService} from './service/diagram-detail.service';
 import {isRunningInElectron} from '../../../services/is-running-in-electron-module/is-running-in-electron.module';
+import {validateIdsAsQnames} from '../../../services/diagram-id-validation-service/diagram-id-validation.service';
 
 @inject(
   'DiagramDetailService',
@@ -51,6 +52,7 @@ export class DiagramDetail {
   public bpmnio: BpmnIo;
   public showSaveForStartModal: boolean = false;
   public showStartEventModal: boolean = false;
+  public showInvalidIdsInXmlModal: boolean = false;
   public showStartWithOptionsModal: boolean = false;
   public processesStartEvents: Array<DataModels.Events.Event> = [];
   public selectedStartEventId: string;
@@ -60,6 +62,8 @@ export class DiagramDetail {
   public remoteSolutions: Array<ISolutionEntry> = [];
   @observable public selectedRemoteSolution: ISolutionEntry;
   public showDiagramExistingModal: boolean = false;
+  public invalidIds: Array<string>;
+  public idsToFix: Map<string, string> = new Map<string, string>();
 
   private diagramDetailService: DiagramDetailService;
   private notificationService: NotificationService;
@@ -106,6 +110,14 @@ export class DiagramDetail {
 
   public async getXML(): Promise<string> {
     return this.bpmnio.getXML();
+  }
+
+  public async xmlChanged(): Promise<void> {
+    this.invalidIds = await validateIdsAsQnames(this.xml);
+
+    if (this.invalidIds.length > 0) {
+      this.showInvalidIdsInXmlModal = true;
+    }
   }
 
   public attached(): void {
@@ -239,6 +251,18 @@ export class DiagramDetail {
     await this.startProcess(parsedInitialToken);
   }
 
+  public fixIds(): void {
+    let fixedXml: string = this.xml;
+
+    const ids = Array.from(this.idsToFix.keys());
+    for (const id of ids) {
+      const idRegex = new RegExp(`"${id}"`, 'g');
+      fixedXml = fixedXml.replace(idRegex, this.idsToFix.get(id));
+    }
+
+    this.xml = fixedXml;
+  }
+
   public async startProcess(parsedInitialToken?: any): Promise<void> {
     if (this.selectedStartEventId === null) {
       return;
@@ -364,6 +388,7 @@ export class DiagramDetail {
     this.showStartWithOptionsModal = false;
     this.showRemoteSolutionOnDeployModal = false;
     this.clickedOnCustomStart = false;
+    this.showInvalidIdsInXmlModal = false;
   }
 
   public showCustomStartModal(): void {

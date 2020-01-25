@@ -96,7 +96,7 @@
       </template>
     </modal>
 
-    <modal show.bind="showSelectDiagramModal"
+    <modal show.bind="showInvalidIdsInXmlModal"
           header-text="Choose a Diagram"
           id="js-chooseDiagram-modal">
       <template replace-part="modal-body">
@@ -111,4 +111,22 @@
       </template>
     </modal>
   </div>
+
+  <modal show.bind="showInvalidIdsInXmlModal"
+    header-text="Xml includes elements with invalid ids">
+    <template replace-part="modal-body">
+      The xml includes elements with invalid ids.<br>
+      In order to display the xml correctly you have to change the following ids:
+      <div>
+        <div repeat.for="invalidId of invalidIdsInXml">
+          <span>${invalidId}</span>
+          <input type="text" change.delegate="setIdToFix(invalidId, $event.target.value)"/>
+        </div>
+      </div>
+    </template>
+    <template replace-part="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal" click.delegate="diagramDetail.cancelDialog()">Cancel</button>
+      <button type="button" class="btn btn-primary" data-dismiss="modal" click.delegate="diagramDetail.fixIds()">Fix xml</button>
+    </template>
+  </modal>
 </template>

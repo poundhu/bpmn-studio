@@ -347,6 +347,14 @@ export class Design {
     return this.diagramDetail.showSaveForStartModal;
   }
 
+  public get showInvalidIdsInXmlModal(): boolean {
+    return this.diagramDetail.showInvalidIdsInXmlModal;
+  }
+
+  public get invalidIdsInXml(): Array<string> {
+    return this.diagramDetail.invalidIds;
+  }
+
   public get showStartWithOptionsModal(): boolean {
     return this.diagramDetail.showStartWithOptionsModal;
   }
@@ -357,6 +365,10 @@ export class Design {
 
   public get diagramHasChanged(): boolean {
     return this.diagramDetail.diagramHasChanged;
+  }
+
+  public setIdToFix(invalidId: string, fixedId: string): void {
+    this.diagramDetail.idsToFix.set(invalidId, fixedId);
   }
 
   private async setActiveDiagram(diagramName: string, diagramUri: string): Promise<void> {
